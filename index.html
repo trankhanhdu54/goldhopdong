@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Wedding</title>
+    
+    <link rel="icon" href="https://img.icons8.com/color/48/wedding-rings.png" type="image/png">
+    <meta property="og:title" content="Báo giá Gold Wedding">
+    <meta property="og:description" content="Bảng Báo Giá Dịch Vụ Chụp Ảnh & Quay Phim">
+    <meta property="og:image" content="https://img.icons8.com/color/512/wedding-rings.png">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; background: #f4f4f4;}
+        .khu-vuc-nhap { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+        .form-group { margin-bottom: 15px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box;}
+        input[readonly] { background: #e9ecef; cursor: not-allowed; }
+        button { background: #28a745; color: white; border: none; padding: 12px 15px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background: #218838; }
+        .btn-add { background: #007bff; margin-bottom: 15px;}
+        .btn-add:hover { background: #0056b3; }
+        
+        .row-nhap { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;}
+        .row-nhap > div { flex: 1; min-width: 130px; }
+        
+        #noi-dung-can-in { 
+            background: #fff; 
+            padding: 5px; 
+            width: 100%; 
+            box-sizing: border-box; 
+            font-family: 'Times New Roman', Times, serif; 
+            color: #222;
+        }
+        .khung-vien-vang {
+            border: 2px solid #d4af37;
+            padding: 25px; 
+            position: relative;
+        }
+        .khung-vien-vang::before {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 1px solid #d4af37;
+        }
+        .header-pdf { text-align: center; color: #d4af37; font-size: 24px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 1px;}
+        .sub-header { text-align: center; font-size: 14px; font-style: italic; color: #666; margin-bottom: 20px; }
+        
+        #out-ten-khach { 
+            text-align: center; 
+            font-size: 22px; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            text-transform: uppercase;
+        }
+        
+        .dong-chi-tiet { display: flex; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; font-size: 15px;}
+        .dong-tong { font-weight: bold; margin-top: 8px; font-size: 15px; border-bottom: none;}
+        .gia-do { color: #d9534f; font-size: 17px;}
+        .luu-y-thanh-toan { font-style: italic; margin-top: 10px; margin-bottom: 15px; font-size: 14px;}
+        .khu-vuc-info { margin-top: 15px; line-height: 1.5; font-size: 14px;} 
+        .tieu-de-nho { font-weight: bold; margin-top: 12px; margin-bottom: 3px; color: #d4af37; text-transform: uppercase; font-size: 15px;}
+    </style>
+</head>
+<body>
+
+    <div class="khu-vuc-nhap">
+        <h2>Bảng Nhập Liệu Báo Giá 🛠️</h2>
+        
+        <div class="form-group">
+            <label>Tên Khách Hàng:</label>
+            <input type="text" id="ten-khach" value="" placeholder="Nhập tên khách hàng dzo đây nè..." oninput="capNhatBill()">
+        </div>
+
+        <label>Các ngày / gói chụp chi tiết:</label>
+        <div id="danh-sach-goi">
+            <div class="row-nhap">
+                <div>
+                    <input type="date" class="in-ngay" onchange="autoAmLich(this)">
+                </div>
+                <div>
+                    <input type="text" class="in-am" placeholder="Âm lịch (tự động)" readonly>
+                </div>
+                <div>
+                    <select class="in-buoi" onchange="capNhatBill()">
+                        <option value="">-- Buổi --</option>
+                        <option value="Sáng">Sáng</option>
+                        <option value="Trưa">Trưa</option>
+                        <option value="Chiều">Chiều</option>
+                        <option value="Tối">Tối</option>
+                        <option value="Cả ngày">Cả ngày</option>
+                    </select>
+                </div>
+                <div>
+                    <select class="in-goi" onchange="capNhatBill()">
+                        <option value="">-- Chọn gói --</option>
+                        <option value="Gói Truyền Thống">Gói Truyền Thống</option>
+                        <option value="Gói Phóng Sự 1 Máy">Gói Phóng Sự 1 Máy</option>
+                        <option value="Gói Phóng Sự 2 Máy">Gói Phóng Sự 2 Máy</option>
+                        <option value="Quay Truyền Thống">Quay Truyền Thống</option>
+                        <option value="Quay Phóng Sự">Quay Phóng Sự</option>
+                        <option value="Chụp Xuất Giá">Chụp Xuất Giá</option>
+                        <option value="Quay Xuất Giá">Quay Xuất Giá</option>
+                    </select>
+                </div>
+                <div>
+                    <input type="text" class="in-gia" placeholder="Giá (vd: 3,000,000)" oninput="formatInputTien(this)">
+                </div>
+            </div>
+        </div>
+        <button class="btn-add" onclick="themGoiChup()">+ Thêm ngày/gói chụp</button>
+
+        <div class="form-group">
+            <label>Phí di chuyển (VNĐ):</label>
+            <input type="text" id="phi-di-chuyen" placeholder="Vd: 500,000" oninput="formatInputTien(this)">
+            <input type="text" id="ghi-chu-di-chuyen" placeholder="Ghi chú (Vd: Phí di chuyển 2 hôm)" oninput="capNhatBill()" style="margin-top:8px;">
+        </div>
+
+        <div class="form-group">
+            <label>Đã cọc (VNĐ):</label>
+            <input type="text" id="da-coc" placeholder="Vd: 1,000,000" oninput="formatInputTien(this)">
+        </div>
+
+        <div class="form-group">
+            <label>Sản phẩm bàn giao (ghi liền mạch xuống dòng):</label>
+            <textarea id="san-pham" rows="3" oninput="capNhatBill()">Nhận toàn bộ file chỉnh sửa&#10;1 cuốn Albums 120 ảnh&#10;1 cuốn Albums 130 ảnh</textarea>
+        </div>
+
+        <button onclick="xuatPDF()" style="width: 100%;">Xuất File PDF Đẹp Mắt 🖨️</button>
+    </div>
+
+    <div id="noi-dung-can-in">
+        <div class="khung-vien-vang">
+            <div class="header-pdf">GOLD WEDDING</div>
+            <div class="sub-header">Bảng Báo Giá Dịch Vụ Chụp Ảnh & Quay Phim</div>
+            
+            <div id="out-ten-khach">TÊN KHÁCH HÀNG</div>
+            
+            <div style="font-weight: bold; margin-bottom: 10px; font-size: 16px; color: #d4af37;">Chi tiết gói chụp:</div>
+            <div id="out-danh-sach-goi"></div>
+
+            <div class="dong-chi-tiet" id="box-di-chuyen" style="display:none; margin-top: 5px;">
+                <span id="out-ghi-chu-di-chuyen">Phí di chuyển:</span>
+                <span><span id="out-phi-di-chuyen">0</span> VNĐ</span>
+            </div>
+            
+            <div style="border-top: 1px solid #d4af37; margin-top: 10px; padding-top: 10px;">
+                <div class="dong-chi-tiet dong-tong">
+                    <span>Đã cọc:</span>
+                    <span><span id="out-da-coc">0</span> VNĐ</span>
+                </div>
+                <div class="dong-chi-tiet dong-tong">
+                    <span>Tổng:</span>
+                    <span><span id="out-tong" class="gia-do">0</span> <span class="gia-do">VNĐ</span></span>
+                </div>
+                <div class="dong-chi-tiet dong-tong" style="font-size: 17px;">
+                    <span>Số tiền còn lại:</span>
+                    <span><span id="out-con-lai">0</span> VNĐ</span>
+                </div>
+            </div>
+            <div class="luu-y-thanh-toan">Thanh toán sau buổi chụp từ 1-2 ngày.</div>
+
+            <div class="khu-vuc-info">
+                <div id="out-san-pham" style="white-space: pre-line; margin-bottom: 15px; font-weight: bold;"></div>
+                
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #d4af37;">Chi tiết thực hiện:</div>
+                
+                <div class="tieu-de-nho">Quy trình làm việc:</div>
+                <div>File sẽ được chỉnh sửa sau khi khách hàng thanh toán đủ.</div>
+                <div>Thời gian nhận file: 15-20 ngày sau thanh toán.</div>
+                <div>Thời gian nhận album: 7-10 ngày sau khi chọn ảnh.</div>
+                
+                <div class="tieu-de-nho">Thông tin thanh toán:</div>
+                <div>Ngân hàng: TP Bank</div>
+                <div>Chủ tài khoản: TRAN KHANH DU</div>
+                <div>Số tài khoản: 00003952525</div>
+                
+                <div class="tieu-de-nho">Thông tin liên hệ:</div>
+                <div>Họ Tên: Trần Khánh Dư</div>
+                <div>Zalo: 0836.547.247</div>
+                <div>Facebook: TranDuGold</div>
+                
+                <div class="tieu-de-nho">Lưu ý:</div>
+                <div>Quý khách vui lòng giữ lại biên lai chuyển khoản để đối chiếu nếu cần.</div>
+                <div>Mọi thắc mắc vui lòng liên hệ trực tiếp qua Facebook hoặc số điện thoại trên để được hỗ trợ.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatInputTien(input) {
+            let val = input.value.replace(/\D/g, ''); 
+            if(val) {
+                input.value = Number(val).toLocaleString('en-US');
+            } else {
+                input.value = '';
+            }
+            capNhatBill();
+        }
+
+        function themGoiChup() {
+            const container = document.getElementById('danh-sach-goi');
+            const row = document.createElement('div');
+            row.className = 'row-nhap';
+            row.innerHTML = `
+                <div><input type="date" class="in-ngay" onchange="autoAmLich(this)"></div>
+                <div><input type="text" class="in-am" placeholder="Âm lịch (tự động)" readonly></div>
+                <div>
+                    <select class="in-buoi" onchange="capNhatBill()">
+                        <option value="">-- Buổi --</option>
+                        <option value="Sáng">Sáng</option>
+                        <option value="Trưa">Trưa</option>
+                        <option value="Chiều">Chiều</option>
+                        <option value="Tối">Tối</option>
+                        <option value="Cả ngày">Cả ngày</option>
+                    </select>
+                </div>
+                <div>
+                    <select class="in-goi" onchange="capNhatBill()">
+                        <option value="">-- Chọn gói --</option>
+                        <option value="Gói Truyền Thống">Gói Truyền Thống</option>
+                        <option value="Gói Phóng Sự 1 Máy">Gói Phóng Sự 1 Máy</option>
+                        <option value="Gói Phóng Sự 2 Máy">Gói Phóng Sự 2 Máy</option>
+                        <option value="Quay Truyền Thống">Quay Truyền Thống</option>
+                        <option value="Quay Phóng Sự">Quay Phóng Sự</option>
+                        <option value="Chụp Xuất Giá">Chụp Xuất Giá</option>
+                        <option value="Quay Xuất Giá">Quay Xuất Giá</option>
+                    </select>
+                </div>
+                <div><input type="text" class="in-gia" placeholder="Giá (vd: 3,000,000)" oninput="formatInputTien(this)"></div>
+                <div style="min-width: 100%; text-align: right; margin-top: 5px;">
+                    <button onclick="this.parentElement.parentElement.remove(); capNhatBill();" style="background:#dc3545; padding: 5px 15px; width: auto;">Xóa</button>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function autoAmLich(inputElem) {
+            let val = inputElem.value;
+            if(!val) return;
+            
+            let parts = val.split('-');
+            if(parts.length === 3) {
+                let y = parseInt(parts[0]);
+                let m = parseInt(parts[1]);
+                let d = parseInt(parts[2]);
+                
+                try {
+                    let solar = Solar.fromYmd(y, m, d);
+                    let lunar = solar.getLunar();
+                    let amInput = inputElem.closest('.row-nhap').querySelector('.in-am');
+                    if(amInput) {
+                        let lD = lunar.getDay();
+                        let lM = lunar.getMonth();
+                        amInput.value = (lD < 10 ? '0'+lD : lD) + '/' + (lM < 10 ? '0'+lM : lM) + ' Âm Lịch';
+                    }
+                } catch(e) { console.log("Lỗi tính lịch", e); }
+            }
+            capNhatBill();
+        }
+
+        function formatTien(so) {
+            return so ? Number(so).toLocaleString('en-US') : "0";
+        }
+
+        function capNhatBill() {
+            document.getElementById('out-ten-khach').innerText = document.getElementById('ten-khach').value || 'TÊN KHÁCH HÀNG';
+            
+            const listNgay = document.querySelectorAll('.in-ngay');
+            const listAm = document.querySelectorAll('.in-am');
+            const listBuoi = document.querySelectorAll('.in-buoi');
+            const listGoi = document.querySelectorAll('.in-goi');
+            const listGia = document.querySelectorAll('.in-gia');
+            
+            let outDanhSach = '';
+            let tongTien = 0;
+
+            for(let i=0; i<listNgay.length; i++) {
+                let ngayVal = listNgay[i].value; 
+                let am = listAm[i].value;
+                let buoi = listBuoi[i].value;
+                let goi = listGoi[i].value;
+                
+                let giaRaw = listGia[i].value.replace(/\D/g, '');
+                let gia = Number(giaRaw) || 0;
+                
+                if(ngayVal || goi || gia) {
+                    let textTrai = '';
+                    
+                    if(ngayVal) {
+                        let p = ngayVal.split('-');
+                        let ngayVN = p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : ngayVal;
+                        textTrai += 'Ngày ' + ngayVN + ' ';
+                    }
+                    
+                    if(am) textTrai += '(' + am + ') ';
+                    if(buoi) textTrai += buoi + ' ';
+                    if(goi) textTrai += '- ' + goi;
+                    
+                    let textPhai = gia ? formatTien(gia) + ' VNĐ' : '';
+                    
+                    outDanhSach += '<div class="dong-chi-tiet"><span>' + textTrai.trim() + '</span><span style="font-weight:bold;">' + textPhai + '</span></div>';
+                    tongTien += gia;
+                }
+            }
+            document.getElementById('out-danh-sach-goi').innerHTML = outDanhSach;
+
+            let phiDiChuyenRaw = document.getElementById('phi-di-chuyen').value.replace(/\D/g, '');
+            let phiDiChuyen = Number(phiDiChuyenRaw) || 0;
+            let ghiChuDiChuyen = document.getElementById('ghi-chu-di-chuyen').value || 'Phí di chuyển';
+            
+            if(phiDiChuyen > 0) {
+                document.getElementById('box-di-chuyen').style.display = 'flex';
+                document.getElementById('out-ghi-chu-di-chuyen').innerText = ghiChuDiChuyen + ':';
+                document.getElementById('out-phi-di-chuyen').innerText = formatTien(phiDiChuyen);
+                tongTien += phiDiChuyen;
+            } else {
+                document.getElementById('box-di-chuyen').style.display = 'none';
+            }
+
+            let daCocRaw = document.getElementById('da-coc').value.replace(/\D/g, '');
+            let daCoc = Number(daCocRaw) || 0;
+            let conLai = tongTien - daCoc;
+
+            document.getElementById('out-tong').innerText = formatTien(tongTien);
+            document.getElementById('out-da-coc').innerText = formatTien(daCoc);
+            document.getElementById('out-con-lai').innerText = formatTien(conLai > 0 ? conLai : 0);
+
+            document.getElementById('out-san-pham').innerText = document.getElementById('san-pham').value;
+        }
+
+        capNhatBill();
+
+        function xuatPDF() {
+            const element = document.getElementById('noi-dung-can-in');
+            const opt = {
+                margin:       0.2, 
+                filename:     (document.getElementById('ten-khach').value || 'Bao_Gia_Gold_Wedding') + '.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 2, scrollY: 0, useCORS: true }, 
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
+
