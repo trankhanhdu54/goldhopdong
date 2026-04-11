@@ -28,8 +28,9 @@
         .row-nhap { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;}
         .row-nhap > div { flex: 1; min-width: 130px; }
         
+        /* Bọc nền trắng cho toàn bộ vùng in để chống lỗi trong suốt */
         #noi-dung-can-in { 
-            background: #fff; 
+            background: #ffffff; 
             padding: 5px; 
             width: 100%; 
             box-sizing: border-box; 
@@ -40,6 +41,7 @@
             border: 2px solid #d4af37;
             padding: 25px; 
             position: relative;
+            background: #ffffff;
         }
         .khung-vien-vang::before {
             content: '';
@@ -317,57 +319,65 @@
             document.getElementById('out-quy-trinh').innerText = document.getElementById('in-quy-trinh').value;
         }
 
-        // --- HÀM XUẤT PDF HOÀN CHỈNH - SẠCH SẼ - KHÔNG LỖI ---
         function xuatPDF() {
             const btn = document.getElementById('btn-xuat-pdf');
             const oldText = btn.innerText;
             btn.innerText = "Đang tạo PDF, vui lòng đợi... ⏳";
             btn.disabled = true;
 
+            // BÍ QUYẾT TRỊ LỖI TRẮNG TRANG: Bắt buộc cuộn lên đỉnh màn hình trước khi render
+            window.scrollTo(0, 0);
+
             const element = document.getElementById('noi-dung-can-in');
             const tenKhach = document.getElementById('ten-khach').value.trim() || 'Bao_Gia_Gold_Wedding';
             const fileName = tenKhach.replace(/\s+/g, '_') + '.pdf'; 
             
             const opt = {
-                margin: 0.2,
+                margin: 5, // Lề 5mm
                 filename: fileName,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true, 
+                    logging: false,
+                    scrollY: 0, // Khóa vị trí trục Y
+                    scrollX: 0  // Khóa vị trí trục X
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Nhận diện iOS (bao gồm cả iPhone, iPod, và các dòng iPad đời mới dùng hệ điều hành máy tính)
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-            if (isIOS) {
-                // Trên iOS: Render ra định dạng đọc PDF trực tiếp để mở tab mới. Khắc phục triệt để lỗi tải.
-                html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
-                    window.location.href = pdf.output('bloburl');
-                }).then(() => {
-                    btn.innerText = oldText;
-                    btn.disabled = false;
-                }).catch(function(err) {
-                    alert("Có lỗi xảy ra trên iOS. Vui lòng thử lại!");
-                    console.error(err);
-                    btn.innerText = oldText;
-                    btn.disabled = false;
-                });
-            } else {
-                // Trên Android & Máy tính: Sử dụng hàm .save() gốc của html2pdf. Đảm bảo cấu trúc file PDF chuẩn 100%.
-                html2pdf().set(opt).from(element).save().then(() => {
-                    btn.innerText = oldText;
-                    btn.disabled = false;
-                }).catch(function(err) {
-                    alert("Có lỗi xảy ra khi lưu file. Vui lòng thử lại!");
-                    console.error(err);
-                    btn.innerText = oldText;
-                    btn.disabled = false;
-                });
-            }
+            // Tạm dừng 300ms để trình duyệt kịp cập nhật vị trí scroll (nếu màn hình có mượt/giật)
+            setTimeout(() => {
+                if (isIOS) {
+                    html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
+                        window.location.href = pdf.output('bloburl');
+                    }).then(() => {
+                        btn.innerText = oldText;
+                        btn.disabled = false;
+                    }).catch(function(err) {
+                        alert("Lỗi xuất PDF trên iOS!");
+                        console.error(err);
+                        btn.innerText = oldText;
+                        btn.disabled = false;
+                    });
+                } else {
+                    html2pdf().set(opt).from(element).save().then(() => {
+                        btn.innerText = oldText;
+                        btn.disabled = false;
+                    }).catch(function(err) {
+                        alert("Lỗi xuất file PDF!");
+                        console.error(err);
+                        btn.innerText = oldText;
+                        btn.disabled = false;
+                    });
+                }
+            }, 300);
         }
         
         // Chạy lần đầu
         capNhatBill();
     </script>
 </body>
-</html>
+</h
