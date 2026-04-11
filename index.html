@@ -21,6 +21,7 @@
         input[readonly] { background: #e9ecef; cursor: not-allowed; }
         button { background: #28a745; color: white; border: none; padding: 12px 15px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
         button:hover { background: #218838; }
+        button:disabled { background: #6c757d; cursor: wait; }
         .btn-add { background: #007bff; margin-bottom: 15px;}
         .btn-add:hover { background: #0056b3; }
         
@@ -135,7 +136,7 @@
             <textarea id="in-quy-trinh" rows="4" oninput="capNhatBill()">File sẽ được chỉnh sửa sau khi khách hàng thanh toán đủ.&#10;Thời gian nhận file: 15-20 ngày sau thanh toán.&#10;Thời gian nhận album: 7-10 ngày sau khi chọn ảnh.</textarea>
         </div>
 
-        <button onclick="xuatPDF()" style="width: 100%;">Xuất File PDF Đẹp Mắt 🖨️</button>
+        <button id="btn-xuat-pdf" onclick="xuatPDF()" style="width: 100%;">Xuất File PDF Đẹp Mắt 🖨️</button>
     </div>
 
     <div id="noi-dung-can-in">
@@ -295,7 +296,6 @@
                 tongTien += phiDiChuyen;
             } else { document.getElementById('box-di-chuyen').style.display = 'none'; }
 
-            // Gán Tổng chi phí (Chưa trừ gì cả)
             document.getElementById('out-tong-chi-phi').innerText = formatTien(tongTien);
 
             let giamGia = Number(document.getElementById('giam-gia').value.replace(/\D/g, '')) || 0;
@@ -306,7 +306,6 @@
 
             let daCoc = Number(document.getElementById('da-coc').value.replace(/\D/g, '')) || 0;
             
-            // Toán học:
             let tongSauGiam = tongTien - giamGia;
             let conLai = tongSauGiam - daCoc;
 
@@ -318,18 +317,61 @@
             document.getElementById('out-quy-trinh').innerText = document.getElementById('in-quy-trinh').value;
         }
 
+        // --- HÀM XUẤT PDF MỚI ĐÃ FIX LỖI CHO IOS, ANDROID, PC ---
         function xuatPDF() {
+            const btn = document.getElementById('btn-xuat-pdf');
+            const oldText = btn.innerText;
+            btn.innerText = "Đang tạo PDF, vui lòng đợi... ⏳";
+            btn.disabled = true;
+
             const element = document.getElementById('noi-dung-can-in');
+            const tenKhach = document.getElementById('ten-khach').value.trim() || 'Bao_Gia_Gold_Wedding';
+            const fileName = tenKhach.replace(/\s+/g, '_') + '.pdf'; // Xóa khoảng trắng trong tên file
+            
             const opt = {
                 margin: 0.2,
-                filename: (document.getElementById('ten-khach').value || 'Bao_Gia') + '.pdf',
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 2, useCORS: true },
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+
+            html2pdf().set(opt).from(element).output('blob').then(function(blob) {
+                const url = URL.createObjectURL(blob);
+                
+                // Kiểm tra xem thiết bị có phải là iOS (iPhone/iPad) không
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+                if (isIOS) {
+                    // Mở tab mới hoặc chuyển hướng để iOS tự kích hoạt trình xem PDF mặc định
+                    window.location.href = url;
+                } else {
+                    // Máy tính và Android: Tải xuống trực tiếp
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); }, 100);
+                }
+
+                // Dọn dẹp bộ nhớ và khôi phục nút bấm
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    btn.innerText = oldText;
+                    btn.disabled = false;
+                }, 1000);
+
+            }).catch(function(err) {
+                alert("Có lỗi xảy ra khi tạo PDF. Vui lòng thử lại!");
+                console.error(err);
+                btn.innerText = oldText;
+                btn.disabled = false;
+            });
         }
         
+        // Khởi tạo chạy lần đầu
         capNhatBill();
     </script>
 </body>
