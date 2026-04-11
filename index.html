@@ -19,7 +19,7 @@
         label { font-weight: bold; display: block; margin-bottom: 5px; }
         input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box;}
         input[readonly] { background: #e9ecef; cursor: not-allowed; }
-        button { background: #28a745; color: white; border: none; padding: 12px 15px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button { background: #28a745; color: white; border: none; padding: 12px 15px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
         button:hover { background: #218838; }
         button:disabled { background: #6c757d; cursor: wait; }
         .btn-add { background: #007bff; margin-bottom: 15px;}
@@ -317,7 +317,7 @@
             document.getElementById('out-quy-trinh').innerText = document.getElementById('in-quy-trinh').value;
         }
 
-        // --- HÀM XUẤT PDF MỚI ĐÃ FIX LỖI CHO IOS, ANDROID, PC ---
+        // --- HÀM XUẤT PDF HOÀN CHỈNH - SẠCH SẼ - KHÔNG LỖI ---
         function xuatPDF() {
             const btn = document.getElementById('btn-xuat-pdf');
             const oldText = btn.innerText;
@@ -326,7 +326,7 @@
 
             const element = document.getElementById('noi-dung-can-in');
             const tenKhach = document.getElementById('ten-khach').value.trim() || 'Bao_Gia_Gold_Wedding';
-            const fileName = tenKhach.replace(/\s+/g, '_') + '.pdf'; // Xóa khoảng trắng trong tên file
+            const fileName = tenKhach.replace(/\s+/g, '_') + '.pdf'; 
             
             const opt = {
                 margin: 0.2,
@@ -336,42 +336,37 @@
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).output('blob').then(function(blob) {
-                const url = URL.createObjectURL(blob);
-                
-                // Kiểm tra xem thiết bị có phải là iOS (iPhone/iPad) không
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            // Nhận diện iOS (bao gồm cả iPhone, iPod, và các dòng iPad đời mới dùng hệ điều hành máy tính)
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-                if (isIOS) {
-                    // Mở tab mới hoặc chuyển hướng để iOS tự kích hoạt trình xem PDF mặc định
-                    window.location.href = url;
-                } else {
-                    // Máy tính và Android: Tải xuống trực tiếp
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => { document.body.removeChild(a); }, 100);
-                }
-
-                // Dọn dẹp bộ nhớ và khôi phục nút bấm
-                setTimeout(() => {
-                    window.URL.revokeObjectURL(url);
+            if (isIOS) {
+                // Trên iOS: Render ra định dạng đọc PDF trực tiếp để mở tab mới. Khắc phục triệt để lỗi tải.
+                html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
+                    window.location.href = pdf.output('bloburl');
+                }).then(() => {
                     btn.innerText = oldText;
                     btn.disabled = false;
-                }, 1000);
-
-            }).catch(function(err) {
-                alert("Có lỗi xảy ra khi tạo PDF. Vui lòng thử lại!");
-                console.error(err);
-                btn.innerText = oldText;
-                btn.disabled = false;
-            });
+                }).catch(function(err) {
+                    alert("Có lỗi xảy ra trên iOS. Vui lòng thử lại!");
+                    console.error(err);
+                    btn.innerText = oldText;
+                    btn.disabled = false;
+                });
+            } else {
+                // Trên Android & Máy tính: Sử dụng hàm .save() gốc của html2pdf. Đảm bảo cấu trúc file PDF chuẩn 100%.
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.innerText = oldText;
+                    btn.disabled = false;
+                }).catch(function(err) {
+                    alert("Có lỗi xảy ra khi lưu file. Vui lòng thử lại!");
+                    console.error(err);
+                    btn.innerText = oldText;
+                    btn.disabled = false;
+                });
+            }
         }
         
-        // Khởi tạo chạy lần đầu
+        // Chạy lần đầu
         capNhatBill();
     </script>
 </body>
