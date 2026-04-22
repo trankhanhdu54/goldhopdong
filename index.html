@@ -105,6 +105,8 @@
                         <option value="Quay Phóng Sự">Quay Phóng Sự</option>
                         <option value="Chụp Xuất Giá">Chụp Xuất Giá</option>
                         <option value="Quay Xuất Giá">Quay Xuất Giá</option>
+                        <option value="Combo Quay + Chụp">Combo Quay + Chụp</option>
+                        <option value="Combo Quay + Chụp Vip">Combo Quay + Chụp Vip</option>
                     </select>
                 </div>
                 <div><input type="text" class="in-gia" placeholder="Giá" oninput="formatInputTien(this)"></div>
@@ -212,6 +214,7 @@
             const container = document.getElementById('danh-sach-goi');
             const row = document.createElement('div');
             row.className = 'row-nhap';
+            // Cập nhật lại danh sách option cho giống hệt với HTML ban đầu
             row.innerHTML = `
                 <div><input type="date" class="in-ngay" onchange="autoAmLich(this)"></div>
                 <div><input type="text" class="in-am" placeholder="Âm lịch" readonly></div>
@@ -231,6 +234,10 @@
                         <option value="Gói Phóng Sự 2 Máy Vip">Gói Phóng Sự 2 Máy Vip</option>
                         <option value="Quay Truyền Thống">Quay Truyền Thống</option>
                         <option value="Quay Phóng Sự">Quay Phóng Sự</option>
+                        <option value="Chụp Xuất Giá">Chụp Xuất Giá</option>
+                        <option value="Quay Xuất Giá">Quay Xuất Giá</option>
+                        <option value="Combo Quay + Chụp">Combo Quay + Chụp</option>
+                        <option value="Combo Quay + Chụp Vip">Combo Quay + Chụp Vip</option>
                     </select>
                 </div>
                 <div><input type="text" class="in-gia" placeholder="Giá" oninput="formatInputTien(this)"></div>
@@ -380,4 +387,4 @@
         capNhatBill();
     </script>
 </body>
-</h
+</html>
